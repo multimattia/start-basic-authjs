@@ -7,16 +7,16 @@ import { nitro } from "nitro/vite";
 
 export default defineConfig({
   server: {
-    port: 10000,
+    port: 8080,
     strictPort: true,
   },
   plugins: [
-    nitro({ preset: "bun" }),
     tailwindcss(),
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
     tanstackStart(),
+    nitro({ preset: "bun" }),
     viteReact(),
   ],
 });
