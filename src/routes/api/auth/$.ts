@@ -2,10 +2,8 @@ import { auth } from "~/utils/auth";
 import { createFileRoute } from "@tanstack/react-router";
 
 /**
- * Auth.js API route handler
  * Handles all auth routes: /api/auth/*
  */
-// const { GET, POST } = StartAuthJS(authConfig);
 
 function normalizeRailwayRequest(request: Request) {
   const xfProto = request.headers.get("x-forwarded-proto");
