@@ -13,27 +13,12 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import appCss from "~/styles/app.css?url";
 import type { Session } from "better-auth";
-// import { createServerFn } from "@tanstack/react-start";
-// import { getRequest } from "@tanstack/react-start/server";
-// import { auth } from "~/utils/auth";
 
 interface RouterContext {
   session: Session | null;
 }
 
-// const fetchSession = createServerFn({ method: "GET" }).handler(async () => {
-//   const request = getRequest();
-//   const session = await auth.api.getSession({ headers: request.headers });
-//   return session;
-// });
-
 export const Route = createRootRoute<RouterContext>({
-  // beforeLoad: async () => {
-  //   const session = await fetchSession();
-  //   return {
-  //     session,
-  //   };
-  // },
   head: () => ({
     meta: [
       {
@@ -77,7 +62,6 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 function NavBar() {
-  // const routeContext = Route.useRouteContext();
   const { data: session, error } = authClient.useSession();
   const navigate = useNavigate();
   async function signOut(e: React.MouseEvent) {
