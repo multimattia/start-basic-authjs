@@ -1,14 +1,11 @@
+import { auth } from "~/utils/auth";
 import { createFileRoute } from "@tanstack/react-router";
-import { StartAuthJS } from "start-authjs";
-import { authConfig } from "~/utils/auth";
 
 /**
  * Auth.js API route handler
  * Handles all auth routes: /api/auth/*
  */
-const { GET, POST } = StartAuthJS(authConfig);
-console.log("AUTH_URL", process.env.AUTH_URL);
-console.log("AUTH_TRUST_HOST", process.env.AUTH_TRUST_HOST);
+// const { GET, POST } = StartAuthJS(authConfig);
 
 function normalizeRailwayRequest(request: Request) {
   const xfProto = request.headers.get("x-forwarded-proto");
@@ -34,16 +31,12 @@ function normalizeRailwayRequest(request: Request) {
 export const Route = createFileRoute("/api/auth/$")({
   server: {
     handlers: {
-      GET: ({ request }) =>
-        GET({
-          request: normalizeRailwayRequest(request),
-          response: new Response(),
-        }),
-      POST: ({ request }) =>
-        POST({
-          request: normalizeRailwayRequest(request),
-          response: new Response(),
-        }),
+      GET: async ({ request }: { request: Request }) => {
+        return await auth.handler(normalizeRailwayRequest(request));
+      },
+      POST: async ({ request }: { request: Request }) => {
+        return await auth.handler(normalizeRailwayRequest(request));
+      },
     },
   },
 });

@@ -1,61 +1,63 @@
 /// <reference types="vite/client" />
-import type { ReactNode } from 'react'
-import type { AuthSession } from 'start-authjs'
+import type { ReactNode } from "react";
+import { authClient } from "~/utils/auth-client";
 import {
   HeadContent,
   Link,
   Outlet,
   Scripts,
-  createRootRouteWithContext,
-} from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
-import { getSession } from 'start-authjs'
-import { authConfig } from '~/utils/auth'
-import appCss from '~/styles/app.css?url'
+  createRootRoute,
+  // createRootRouteWithContext,
+  useNavigate,
+} from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import appCss from "~/styles/app.css?url";
+import type { Session } from "better-auth";
+// import { createServerFn } from "@tanstack/react-start";
+// import { getRequest } from "@tanstack/react-start/server";
+// import { auth } from "~/utils/auth";
 
 interface RouterContext {
-  session: AuthSession | null
+  session: Session | null;
 }
 
-const fetchSession = createServerFn({ method: 'GET' }).handler(async () => {
-  const request = getRequest()
-  const session = await getSession(request, authConfig)
-  return session
-})
+// const fetchSession = createServerFn({ method: "GET" }).handler(async () => {
+//   const request = getRequest();
+//   const session = await auth.api.getSession({ headers: request.headers });
+//   return session;
+// });
 
-export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async () => {
-    const session = await fetchSession()
-    return {
-      session,
-    }
-  },
+export const Route = createRootRoute<RouterContext>({
+  // beforeLoad: async () => {
+  //   const session = await fetchSession();
+  //   return {
+  //     session,
+  //   };
+  // },
   head: () => ({
     meta: [
       {
-        charSet: 'utf-8',
+        charSet: "utf-8",
       },
       {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
       },
       {
-        title: 'TanStack Start Auth Example',
+        title: "TanStack Start Auth Example",
       },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootComponent,
-})
+});
 
 function RootComponent() {
   return (
     <RootDocument>
       <Outlet />
     </RootDocument>
-  )
+  );
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
@@ -71,47 +73,65 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }
 
 function NavBar() {
-  const routeContext = Route.useRouteContext()
+  // const routeContext = Route.useRouteContext();
+  const { data: session, error } = authClient.useSession();
+  const navigate = useNavigate();
+  async function signOut(e: React.MouseEvent) {
+    e.preventDefault();
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            navigate({
+              to: "/login",
+            });
+          },
+        },
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   return (
-    <nav className="p-4 flex gap-4 items-center bg-gray-100">
+    <nav className="flex items-center gap-4 bg-gray-100 p-4">
       <Link
         to="/"
-        activeProps={{ className: 'font-bold' }}
+        activeProps={{ className: "font-bold" }}
         activeOptions={{ exact: true }}
       >
         Home
       </Link>
-      <Link to="/protected" activeProps={{ className: 'font-bold' }}>
+      <Link to="/protected" activeProps={{ className: "font-bold" }}>
         Protected
       </Link>
       <div className="ml-auto flex items-center gap-4">
-        {routeContext.session ? (
+        {error && <p>error</p>}
+        {session ? (
           <>
             <span className="text-gray-600">
-              {routeContext.session?.user?.name ||
-                routeContext.session?.user?.email}
+              {session?.user?.name || session?.user?.email}
             </span>
-            <a
-              href="/api/auth/signout"
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            <button
+              onClick={(e) => signOut(e)}
+              className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
             >
               Sign Out
-            </a>
+            </button>
           </>
         ) : (
           <Link
             to="/login"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
           >
             Sign In
           </Link>
         )}
       </div>
     </nav>
-  )
+  );
 }

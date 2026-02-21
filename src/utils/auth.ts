@@ -1,51 +1,27 @@
-import Auth0 from "@auth/core/providers/auth0";
-import { setCookie } from "@tanstack/react-start/server";
-import type { Profile } from "@auth/core/types";
-import type { StartAuthJSConfig } from "start-authjs";
+import { betterAuth } from "better-auth";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { Pool } from "pg";
 
-declare module "@auth/core/types" {
-  export interface Session {
-    user: {
-      name: string;
-      email: string;
-      sub: string;
-      email_verified: boolean;
-    } & Profile;
-    account: {
-      access_token: string;
-    };
-    expires: Date;
-  }
-}
+const connectionString = process.env.DATABASE_URL;
 
-/**
- * Auth.js configuration for TanStack Start with Auth0
- */
-export const authConfig: StartAuthJSConfig = {
-  // basePath is derived from AUTH_URL env var
-  secret: process.env.AUTH_SECRET,
-  trustHost: true,
-  providers: [
-    Auth0({
-      // Auth.js auto-reads AUTH_AUTH0_ID, AUTH_AUTH0_SECRET, AUTH_AUTH0_ISSUER from env
-      authorization: {
-        params: {
-          scope: "email email_verified openid profile",
-          prompt: "login",
-        },
-      },
-      async profile(profile, tokens) {
-        await setCookie(
-          "auth0Token",
-          encodeURIComponent(tokens.access_token ?? ""),
-        );
-        await setCookie(
-          "auth0User",
-          encodeURIComponent(JSON.stringify(profile)),
-        );
-
-        return profile;
-      },
-    }),
-  ],
-};
+export const auth = betterAuth({
+  database: new Pool({
+    connectionString,
+  }),
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 7 * 24 * 60 * 60, // 7 days cache duration
+      strategy: "jwe", // can be "jwt" or "compact"
+      refreshCache: false, // Enable stateless refresh
+    },
+  },
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    },
+  },
+  plugins: [tanstackStartCookies()],
+  //...
+});

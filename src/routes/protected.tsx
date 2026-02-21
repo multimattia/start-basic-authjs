@@ -1,42 +1,53 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { authClient } from "~/utils/auth-client";
 
-export const Route = createFileRoute('/protected')({
-  beforeLoad: ({ context }) => {
-    if (!context.session) {
-      throw redirect({ to: '/login' })
-    }
-  },
+export const Route = createFileRoute("/protected")({
+  // beforeLoad: ({ context }) => {
+  //   if (!context.session) {
+  //     throw redirect({ to: '/login' })
+  //   }
+  // },
   component: Protected,
-})
+});
 
 function Protected() {
-  const { session } = Route.useRouteContext()
-  const user = session?.user
+  const { data: session, isPending, error } = authClient.useSession();
+  const user = session?.user;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Protected Page</h1>
-      <p className="text-gray-600 mb-8">
+    <div className="mx-auto max-w-2xl">
+      <h1 className="mb-4 text-3xl font-bold">Protected Page</h1>
+      <p className="mb-8 text-gray-600">
         This page is only accessible to authenticated users.
       </p>
 
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4 text-green-800">
-          Welcome, {user?.name ?? 'User'}!
+      <div className="rounded-lg border border-green-200 bg-green-50 p-6">
+        <h2 className="mb-4 text-xl font-semibold text-green-800">
+          Welcome, {user?.name ?? "User"}!
         </h2>
 
         {user && (
           <div className="space-y-2 text-green-700">
             <p>
-              <strong>Email:</strong> {user?.email ?? 'N/A'}
+              <strong>Email:</strong> {user?.email ?? "N/A"}
             </p>
+            {error && (
+              <div>
+                <p>error</p>
+              </div>
+            )}
+            {isPending && (
+              <div>
+                <p>Loading...</p>
+              </div>
+            )}
             {user?.image && (
               <div>
                 <strong>Avatar:</strong>
                 <img
                   src={user.image}
                   alt="User avatar"
-                  className="w-20 h-20 rounded-full mt-2"
+                  className="mt-2 h-20 w-20 rounded-full"
                 />
               </div>
             )}
@@ -44,12 +55,12 @@ function Protected() {
         )}
       </div>
 
-      <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-        <h3 className="font-semibold mb-2">Session Data (Debug)</h3>
-        <pre className="text-xs overflow-auto bg-gray-800 text-green-400 p-4 rounded">
+      <div className="mt-8 rounded-lg bg-gray-100 p-4">
+        <h3 className="mb-2 font-semibold">Session Data (Debug)</h3>
+        <pre className="overflow-auto rounded bg-gray-800 p-4 text-xs text-green-400">
           {JSON.stringify(session, null, 2)}
         </pre>
       </div>
     </div>
-  )
+  );
 }

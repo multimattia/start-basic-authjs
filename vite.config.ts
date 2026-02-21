@@ -7,7 +7,7 @@ import { nitro } from "nitro/vite";
 
 export default defineConfig({
   server: {
-    port: 8080,
+    port: 3000,
     strictPort: true,
   },
   plugins: [
